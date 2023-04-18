@@ -1,4 +1,3 @@
-#!/bin/env python
 """
 This script takes a Jupyter notebook, and:
 1. Enumerates all headers (e.g. ## Header -> ## 1.1 Header)
@@ -78,11 +77,16 @@ def collect_headers(nb):
 
 def write_toc(nb_name,nb, headers):
     nb_file = os.path.basename(nb_name)
+
     def format(header):
         indent = (header.level-1)*(2*' ')
         name = header.name
         anchor = '#'+name.replace(' ','-')
         return f"{indent}- [{name}]({anchor})"
+        
+    def remove_unsupported_keys(cell_dict):
+        #removing id key - otherwise GitHub nbviewer fails
+        return cell_dict.pop('id',None)
 
     toc = TOC_COMMENT
     toc += '<b>Contents:</b>\n'
@@ -90,11 +94,14 @@ def write_toc(nb_name,nb, headers):
 
     first_cell = nb.cells[0]
     if is_toc_comment(first_cell):
+        remove_unsupported_keys(first_cell)
         print("- amending toc for {0}".format(nb_file))
         first_cell.source = toc
     else:
         print("- inserting toc for {0}".format(nb_file))
-        nb.cells.insert(0, new_markdown_cell(source=toc))
+        nb.cells.insert(0, new_markdown_cell(source=toc)) 
+        first_cell = nb.cells[0]
+        remove_unsupported_keys(first_cell)
     nbformat.write(nb, nb_name)
     
 if __name__=='__main__':
@@ -102,5 +109,4 @@ if __name__=='__main__':
     nb = nbformat.read(nb_name, as_version=4)
     enumerate_headers(nb)
     headers = collect_headers(nb)
-
     write_toc(nb_name, nb, headers)
