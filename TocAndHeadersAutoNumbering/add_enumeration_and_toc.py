@@ -37,7 +37,7 @@ def is_toc_comment(cell):
         
 def enumerate_headers(nb):
     headers_nums = []
-    RE = re.compile(r'(?:^|\n)(?P<level>#{1,6})(?P<header>(?:\\.|[^\\])*?)#*(?:\n|$)')
+    RE = re.compile(r'(?:^|\n)(?P<level>#{1,6})(?P<header>(?:\\.|[^\\])*?)#*(?P<ender>\n|$)')
     
     def enumerate_the_header(m,headers_nums):
         level = m.group('level').strip().count('#')
@@ -47,7 +47,7 @@ def enumerate_headers(nb):
                 headers_nums.append(0)
             headers_nums[level-1]=headers_nums[level-1]+1
             headers_nums[level:]=[0]*len(headers_nums[level:])
-            return f"{m.group('level')} {'.'.join(str(x) for x in headers_nums[:level])}.{m.group('header')}\n"
+            return f"{m.group('level').strip()} {'.'.join(str(x) for x in headers_nums[:level])}. {m.group('header').strip()}{m.group('ender')}"
         else:
             return m.string
 
